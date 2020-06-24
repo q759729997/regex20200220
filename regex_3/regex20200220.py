@@ -400,16 +400,16 @@ def escape(pattern, special_only=True, literal_spaces=False):
 # --------------------------------------------------------------------
 # Internals.
 
-import regex._regex_core as _regex_core
-import regex._regex as _regex
+import regex20200220._regex20200220_core as _regex20200220_core
+import regex20200220._regex20200220 as _regex20200220
 from threading import RLock as _RLock
 from locale import getpreferredencoding as _getpreferredencoding
-from regex._regex_core import *
-from regex._regex_core import (_ALL_VERSIONS, _ALL_ENCODINGS, _FirstSetError,
+from regex20200220._regex20200220_core import *
+from regex20200220._regex20200220_core import (_ALL_VERSIONS, _ALL_ENCODINGS, _FirstSetError,
   _UnscopedFlagSet, _check_group_features, _compile_firstset,
   _compile_replacement, _flatten_code, _fold_case, _get_required_string,
   _parse_pattern, _shrink_cache)
-from regex._regex_core import (ALNUM as _ALNUM, Info as _Info, OP as _OP, Source
+from regex20200220._regex20200220_core import (ALNUM as _ALNUM, Info as _Info, OP as _OP, Source
   as _Source, Fuzzy as _Fuzzy)
 
 # Version 0 is the old behaviour, compatible with the original 're' module.
@@ -419,7 +419,7 @@ DEFAULT_VERSION = VERSION0
 
 _METACHARS = frozenset("()[]{}?*+|^$\\.-#&~")
 
-_regex_core.DEFAULT_VERSION = DEFAULT_VERSION
+_regex20200220_core.DEFAULT_VERSION = DEFAULT_VERSION
 
 # Caches for the patterns and replacements.
 _cache = {}
@@ -437,7 +437,7 @@ def _compile(pattern, flags, ignore_unused, kwargs):
 
     global DEFAULT_VERSION
     try:
-        from regex import DEFAULT_VERSION
+        from regex20200220 import DEFAULT_VERSION
     except ImportError:
         pass
 
@@ -492,7 +492,7 @@ def _compile(pattern, flags, ignore_unused, kwargs):
         raise TypeError("first argument must be a string or compiled pattern")
 
     # Set the default version in the core code in case it has been changed.
-    _regex_core.DEFAULT_VERSION = DEFAULT_VERSION
+    _regex20200220_core.DEFAULT_VERSION = DEFAULT_VERSION
 
     global_flags = flags
 
@@ -623,7 +623,7 @@ def _compile(pattern, flags, ignore_unused, kwargs):
     # Local flags like IGNORECASE affect the code generation, but aren't needed
     # by the PatternObject itself. Conversely, global flags like LOCALE _don't_
     # affect the code generation but _are_ needed by the PatternObject.
-    compiled_pattern = _regex.compile(pattern, info.flags | version, code,
+    compiled_pattern = _regex20200220.compile(pattern, info.flags | version, code,
       info.group_index, index_group, named_lists, named_list_indexes,
       req_offset, req_chars, req_flags, info.group_count)
 
@@ -650,7 +650,7 @@ def _compile(pattern, flags, ignore_unused, kwargs):
 
 def _compile_replacement_helper(pattern, template):
     "Compiles a replacement template."
-    # This function is called by the _regex module.
+    # This function is called by the _regex20200220 module.
 
     # Have we seen this before?
     key = pattern.pattern, pattern.flags, template
@@ -712,6 +712,6 @@ Regex = compile
 import copyreg as _copy_reg
 
 def _pickle(pattern):
-    return _regex.compile, pattern._pickled_data
+    return _regex20200220.compile, pattern._pickled_data
 
 _copy_reg.pickle(Pattern, _pickle)

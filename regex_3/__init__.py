@@ -1,3 +1,3 @@
-from .regex import *
-from . import regex
-__all__ = regex.__all__
+from .regex20200220 import *
+from . import regex20200220
+__all__ = regex20200220.__all__

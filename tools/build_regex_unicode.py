@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This Python script parses the Unicode data files and generates the C files
-# for the regex module.
+# for the regex20200220 module.
 #
 # Written by MRAB.
 #
@@ -1832,8 +1832,8 @@ class IterRanges:
 def generate_code():
     'Generates the code.'
 
-    h_path = join(code_folder, '_regex_unicode.h')
-    c_path = join(code_folder, '_regex_unicode.c')
+    h_path = join(code_folder, '_regex20200220_unicode.h')
+    c_path = join(code_folder, '_regex20200220_unicode.c')
 
     # Create the list of standardised strings.
     strings = []
@@ -1986,7 +1986,7 @@ typedef RE_UINT32 (*RE_GetPropertyFunc)(RE_UINT32 ch);
 
         c_file.write('''/* For Unicode version {version} */
 
-#include "_regex_unicode.h"
+#include "_regex20200220_unicode.h"
 '''.format(version=unicode_version))
 
         # Write the standardised strings.
@@ -2229,7 +2229,7 @@ unicode_data_base = 'http://www.unicode.org/Public/UNIDATA/'
 unicode_folder = r'D:\projects\Unicode\Data'
 
 # The local folder in which the generated C files should be written.
-code_folder = join(dirname(__file__), 'regex')
+code_folder = join(dirname(__file__), 'regex20200220')
 
 # The path of the file in which the block sizes are stored.
 json_path = splitext(__file__)[0] + '.json'
@@ -2317,7 +2317,7 @@ except (FileNotFoundError, ValueError):
 if RECALC or storage.get('version') != unicode_version:
     storage.clear()
 
-# Generate the _regex_unicode.h and _regex_unicode.c files.
+# Generate the _regex20200220_unicode.h and _regex20200220_unicode.c files.
 generate_code()
 
 # Store the sizes of the table blocks.
@@ -2330,7 +2330,7 @@ report('\nThere are {} properties'.format(len(properties)))
 
 # Collect and summarise a few statistics.
 import re
-c_path = join(code_folder, '_regex_unicode.c')
+c_path = join(code_folder, '_regex20200220_unicode.c')
 code = open(c_path).read()
 sizes = defaultdict(int)
 for n, s in re.findall(r'(\w+(?: \w+)*): (\d+) bytes', code):

@@ -18,7 +18,7 @@ import sys
 import unicodedata
 from collections import defaultdict
 
-import _regex
+import regex20200220._regex20200220 as _regex20200220
 
 __all__ = ["A", "ASCII", "B", "BESTMATCH", "D", "DEBUG", "E", "ENHANCEMATCH",
   "F", "FULLCASE", "I", "IGNORECASE", "L", "LOCALE", "M", "MULTILINE", "P",
@@ -26,7 +26,7 @@ __all__ = ["A", "ASCII", "B", "BESTMATCH", "D", "DEBUG", "E", "ENHANCEMATCH",
   "V0", "VERSION0", "V1", "VERSION1", "W", "WORD", "X", "VERBOSE", "error",
   "Scanner"]
 
-# The regex exception.
+# The regex20200220 exception.
 class error(Exception):
     """Exception raised for invalid regular expressions.
 
@@ -40,7 +40,7 @@ class error(Exception):
     """
 
     def __init__(self, message, pattern=None, pos=None):
-        newline = u'\n' if isinstance(pattern, unicode) else '\n'
+        newline = '\n' if isinstance(pattern, str) else b'\n'
         self.msg = message
         self.pattern = pattern
         self.pos = pos
@@ -48,10 +48,11 @@ class error(Exception):
             self.lineno = pattern.count(newline, 0, pos) + 1
             self.colno = pos - pattern.rfind(newline, 0, pos)
 
-            message = "%s at position %d" % (message, pos)
+            message = "{} at position {}".format(message, pos)
 
             if newline in pattern:
-                message += " (line %d, column %d)" % (self.lineno, self.colno)
+                message += " (line {}, column {})".format(self.lineno,
+                  self.colno)
 
         Exception.__init__(self, message)
 
@@ -111,8 +112,8 @@ NAMED_CHAR_PART = ALNUM | frozenset(" -")
 PROPERTY_NAME_PART = ALNUM | frozenset(" &_-.")
 SET_OPS = ("||", "~~", "&&", "--")
 
-# The width of the code words inside the regex engine.
-BYTES_PER_CODE = _regex.get_code_size()
+# The width of the code words inside the regex20200220 engine.
+BYTES_PER_CODE = _regex20200220.get_code_size()
 BITS_PER_CODE = BYTES_PER_CODE * 8
 
 # The repeat count which represents infinity.
@@ -229,7 +230,7 @@ FUZZY_EXT
 """
 
 # Define the opcodes in a namespace.
-class Namespace(object):
+class Namespace:
     pass
 
 OP = Namespace()
@@ -292,15 +293,15 @@ def _fold_case(info, string):
     if (flags & _ALL_ENCODINGS) == 0:
         flags |= info.guess_encoding
 
-    return _regex.fold_case(flags, string)
+    return _regex20200220.fold_case(flags, string)
 
 def is_cased_i(info, char):
     "Checks whether a character is cased."
-    return len(_regex.get_all_cases(info.flags, char)) > 1
+    return len(_regex20200220.get_all_cases(info.flags, char)) > 1
 
 def is_cased_f(flags, char):
     "Checks whether a character is cased."
-    return len(_regex.get_all_cases(flags, char)) > 1
+    return len(_regex20200220.get_all_cases(flags, char)) > 1
 
 def _compile_firstset(info, fs):
     "Compiles the firstset for the pattern."
@@ -1098,7 +1099,7 @@ def parse_flags_subpattern(source, info):
         raise error("bad inline flags: flag turned on and off", source.string,
           source.pos)
 
-    # Handle flags which are global in all regex behaviours.
+    # Handle flags which are global in all regex20200220 behaviours.
     new_global_flags = (flags_on & ~info.global_flags) & GLOBAL_FLAGS
     if new_global_flags:
         info.global_flags |= new_global_flags
@@ -1151,22 +1152,11 @@ def parse_name(source, allow_numeric=False, allow_group_0=False):
             raise error("bad character in group name", source.string,
               source.pos)
     else:
-        if not is_identifier(name):
+        if not name.isidentifier():
             raise error("bad character in group name", source.string,
               source.pos)
 
     return name
-
-def is_identifier(name):
-    if not name:
-        return False
-
-    if name[0] not in ALPHA and name[0] != "_":
-        return False
-
-    name = name.replace("_", "")
-
-    return not name or all(c in ALNUM for c in name)
 
 def is_octal(string):
     "Checks whether a string is octal."
@@ -1605,26 +1595,18 @@ def numeric_to_rational(numeric):
     else:
         raise ValueError()
 
-    result = "%s%s/%s" % (sign, num, den)
+    result = "{}{}/{}".format(sign, num, den)
     if result.endswith("/1"):
         return result[ : -2]
 
     return result
-
-upper_trans = string.maketrans(string.ascii_lowercase, string.ascii_uppercase)
-def ascii_upper(s):
-    "Uppercases a bytestring in a locale-insensitive way within the ASCII range."
-    if isinstance(s, str):
-        return s.translate(upper_trans)
-
-    return s.upper()
 
 def standardise_name(name):
     "Standardises a property or value name."
     try:
         return numeric_to_rational("".join(name))
     except (ValueError, ZeroDivisionError):
-        return ascii_upper("".join(ch for ch in name if ch not in "_- "))
+        return "".join(ch for ch in name if ch not in "_- ").upper()
 
 _POSIX_CLASSES = set('ALNUM DIGIT PUNCT XDIGIT'.split())
 
@@ -1639,7 +1621,7 @@ def lookup_property(property, value, positive, source=None, posix=False):
     if (property, value) == ("GENERALCATEGORY", "ASSIGNED"):
         property, value, positive = "GENERALCATEGORY", "UNASSIGNED", not positive
 
-    if posix and not property and ascii_upper(value) in _POSIX_CLASSES:
+    if posix and not property and value.upper() in _POSIX_CLASSES:
         value = 'POSIX' + value
 
     if property:
@@ -1725,7 +1707,7 @@ def _compile_replacement(source, pattern, is_unicode):
 
         return False, [ord("\\"), ord(ch)]
 
-    if isinstance(source.sep, str):
+    if isinstance(source.sep, bytes):
         octal_mask = 0xFF
     else:
         octal_mask = 0x1FF
@@ -1839,7 +1821,7 @@ def make_sequence(items):
     return Sequence(items)
 
 # Common base class for all nodes.
-class RegexBase(object):
+class RegexBase:
     def __init__(self):
         self._key = self.__class__
 
@@ -1930,8 +1912,8 @@ class ZeroWidthBase(RegexBase):
         return [(self._opcode, flags)]
 
     def dump(self, indent, reverse):
-        print "%s%s %s" % (INDENT * indent, self._op_name,
-          POS_TEXT[self.positive])
+        print("{}{} {}".format(INDENT * indent, self._op_name,
+          POS_TEXT[self.positive]))
 
     def max_width(self):
         return 0
@@ -1950,7 +1932,7 @@ class Any(RegexBase):
         return [(self._opcode[reverse], flags)]
 
     def dump(self, indent, reverse):
-        print "%s%s" % (INDENT * indent, self._op_name)
+        print("{}{}".format(INDENT * indent, self._op_name))
 
     def max_width(self):
         return 1
@@ -2003,7 +1985,7 @@ class Atomic(RegexBase):
           [(OP.END, )])
 
     def dump(self, indent, reverse):
-        print "%sATOMIC" % (INDENT * indent)
+        print("{}ATOMIC".format(INDENT * indent))
         self.subpattern.dump(indent + 1, reverse)
 
     def is_empty(self):
@@ -2114,10 +2096,10 @@ class Branch(RegexBase):
         return code
 
     def dump(self, indent, reverse):
-        print "%sBRANCH" % (INDENT * indent)
+        print("{}BRANCH".format(INDENT * indent))
         self.branches[0].dump(indent + 1, reverse)
         for b in self.branches[1 : ]:
-            print "%sOR" % (INDENT * indent)
+            print("{}OR".format(INDENT * indent))
             b.dump(indent + 1, reverse)
 
     @staticmethod
@@ -2388,14 +2370,14 @@ class Branch(RegexBase):
               i.case_flags):
                 return False
 
-        folded = u"".join(unichr(i.value) for i in items)
-        folded = _regex.fold_case(FULL_CASE_FOLDING, folded)
+        folded = "".join(chr(i.value) for i in items)
+        folded = _regex20200220.fold_case(FULL_CASE_FOLDING, folded)
 
         # Get the characters which expand to multiple codepoints on folding.
-        expanding_chars = _regex.get_expand_on_folding()
+        expanding_chars = _regex20200220.get_expand_on_folding()
 
         for c in expanding_chars:
-            if folded == _regex.fold_case(FULL_CASE_FOLDING, c):
+            if folded == _regex20200220.fold_case(FULL_CASE_FOLDING, c):
                 return True
 
         return False
@@ -2444,7 +2426,7 @@ class CallGroup(RegexBase):
         return [(OP.GROUP_CALL, self.call_ref)]
 
     def dump(self, indent, reverse):
-        print "%sGROUP_CALL %s" % (INDENT * indent, self.group)
+        print("{}GROUP_CALL {}".format(INDENT * indent, self.group))
 
     def __eq__(self, other):
         return type(self) is type(other) and self.group == other.group
@@ -2481,9 +2463,9 @@ class Character(RegexBase):
 
         if (self.positive and (self.case_flags & FULLIGNORECASE) ==
           FULLIGNORECASE):
-            self.folded = _regex.fold_case(FULL_CASE_FOLDING, unichr(self.value))
+            self.folded = _regex20200220.fold_case(FULL_CASE_FOLDING, chr(self.value))
         else:
-            self.folded = unichr(self.value)
+            self.folded = chr(self.value)
 
         self._key = (self.__class__, self.value, self.positive,
           self.case_flags, self.zerowidth)
@@ -2520,9 +2502,9 @@ class Character(RegexBase):
         return code.compile(reverse, fuzzy)
 
     def dump(self, indent, reverse):
-        display = repr(unichr(self.value)).lstrip("bu")
-        print "%sCHARACTER %s %s%s" % (INDENT * indent,
-          POS_TEXT[self.positive], display, CASE_TEXT[self.case_flags])
+        display = ascii(chr(self.value)).lstrip("bu")
+        print("{}CHARACTER {} {}{}".format(INDENT * indent,
+          POS_TEXT[self.positive], display, CASE_TEXT[self.case_flags]))
 
     def matches(self, ch):
         return (ch == self.value) == self.positive
@@ -2608,10 +2590,10 @@ class Conditional(RegexBase):
         return code
 
     def dump(self, indent, reverse):
-        print "%sGROUP_EXISTS %s" % (INDENT * indent, self.group)
+        print("{}GROUP_EXISTS {}".format(INDENT * indent, self.group))
         self.yes_item.dump(indent + 1, reverse)
         if not self.no_item.is_empty():
-            print "%sOR" % (INDENT * indent)
+            print("{}OR".format(INDENT * indent))
             self.no_item.dump(indent + 1, reverse)
 
     def is_empty(self):
@@ -2756,7 +2738,7 @@ class Fuzzy(RegexBase):
         constraints = self._constraints_to_string()
         if constraints:
             constraints = " " + constraints
-        print "%sFUZZY%s" % (INDENT * indent, constraints)
+        print("{}FUZZY{}".format(INDENT * indent, constraints))
         self.subpattern.dump(indent + 1, reverse)
 
     def is_empty(self):
@@ -2780,12 +2762,12 @@ class Fuzzy(RegexBase):
             con = ""
 
             if min > 0:
-                con = "%s<=" % min
+                con = "{}<=".format(min)
 
             con += name
 
             if max is not None:
-                con += "<=%s" % max
+                con += "<={}".format(max)
 
             constraints.append(con)
 
@@ -2793,11 +2775,11 @@ class Fuzzy(RegexBase):
         for name in "ids":
             coeff = self.constraints["cost"][name]
             if coeff > 0:
-                cost.append("%s%s" % (coeff, name))
+                cost.append("{}{}".format(coeff, name))
 
         limit = self.constraints["cost"]["max"]
         if limit is not None and limit > 0:
-            cost = "%s<=%s" % ("+".join(cost), limit)
+            cost = "{}<={}".format("+".join(cost), limit)
             constraints.append(cost)
 
         return ",".join(constraints)
@@ -2812,7 +2794,7 @@ class Grapheme(RegexBase):
         return grapheme_matcher.compile(reverse, fuzzy)
 
     def dump(self, indent, reverse):
-        print "%sGRAPHEME" % (INDENT * indent)
+        print("{}GRAPHEME".format(INDENT * indent))
 
     def max_width(self):
         return UNLIMITED
@@ -2881,8 +2863,8 @@ class GreedyRepeat(RegexBase):
             limit = "INF"
         else:
             limit = self.max_count
-        print "%s%s %s %s" % (INDENT * indent, self._op_name, self.min_count,
-          limit)
+        print("{}{} {} {}".format(INDENT * indent, self._op_name,
+          self.min_count, limit))
 
         self.subpattern.dump(indent + 1, reverse)
 
@@ -2932,13 +2914,13 @@ class PossessiveRepeat(GreedyRepeat):
           (OP.END, )])
 
     def dump(self, indent, reverse):
-        print("%sATOMIC" % (INDENT * indent))
+        print("{}ATOMIC".format(INDENT * indent))
 
         if self.max_count is None:
             limit = "INF"
         else:
             limit = self.max_count
-        print("%s%s %s %s" % (INDENT * (indent + 1), self._op_name,
+        print("{}{} {} {}".format(INDENT * (indent + 1), self._op_name,
           self.min_count, limit))
 
         self.subpattern.dump(indent + 2, reverse)
@@ -3008,7 +2990,7 @@ class Group(RegexBase):
         group = self.group
         if group < 0:
             group = private_groups[group]
-        print "%sGROUP %s" % (INDENT * indent, group)
+        print("{}GROUP {}".format(INDENT * indent, group))
         self.subpattern.dump(indent + 1, reverse)
 
     def __eq__(self, other):
@@ -3086,8 +3068,8 @@ class LookAround(RegexBase):
           self.subpattern.compile(self.behind) + [(OP.END, )])
 
     def dump(self, indent, reverse):
-        print "%sLOOK%s %s" % (INDENT * indent, self._dir_text[self.behind],
-          POS_TEXT[self.positive])
+        print("{}LOOK{} {}".format(INDENT * indent,
+          self._dir_text[self.behind], POS_TEXT[self.positive]))
         self.subpattern.dump(indent + 1, self.behind)
 
     def is_empty(self):
@@ -3162,13 +3144,13 @@ class LookAroundConditional(RegexBase):
         return code
 
     def dump(self, indent, reverse):
-        print("%sCONDITIONAL %s %s" % (INDENT * indent,
+        print("{}CONDITIONAL {} {}".format(INDENT * indent,
           self._dir_text[self.behind], POS_TEXT[self.positive]))
         self.subpattern.dump(indent + 1, self.behind)
-        print("%sEITHER" % (INDENT * indent))
+        print("{}EITHER".format(INDENT * indent))
         self.yes_item.dump(indent + 1, reverse)
         if not self.no_item.is_empty():
-            print("%sOR" % (INDENT * indent))
+            print("{}OR".format(INDENT * indent))
             self.no_item.dump(indent + 1, reverse)
 
     def is_empty(self):
@@ -3235,11 +3217,11 @@ class Property(RegexBase):
     def dump(self, indent, reverse):
         prop = PROPERTY_NAMES[self.value >> 16]
         name, value = prop[0], prop[1][self.value & 0xFFFF]
-        print "%sPROPERTY %s %s:%s%s" % (INDENT * indent,
-          POS_TEXT[self.positive], name, value, CASE_TEXT[self.case_flags])
+        print("{}PROPERTY {} {}:{}{}".format(INDENT * indent,
+          POS_TEXT[self.positive], name, value, CASE_TEXT[self.case_flags]))
 
     def matches(self, ch):
-        return _regex.has_property_value(self.value, ch) == self.positive
+        return _regex20200220.has_property_value(self.value, ch) == self.positive
 
     def max_width(self):
         return 1
@@ -3283,13 +3265,13 @@ class Range(RegexBase):
             return self
 
         # Get the characters which expand to multiple codepoints on folding.
-        expanding_chars = _regex.get_expand_on_folding()
+        expanding_chars = _regex20200220.get_expand_on_folding()
 
         # Get the folded characters in the range.
         items = []
         for ch in expanding_chars:
             if self.lower <= ord(ch) <= self.upper:
-                folded = _regex.fold_case(FULL_CASE_FOLDING, ch)
+                folded = _regex20200220.fold_case(FULL_CASE_FOLDING, ch)
                 items.append(String([ord(c) for c in folded],
                   case_flags=self.case_flags))
 
@@ -3315,10 +3297,11 @@ class Range(RegexBase):
           self.upper)]
 
     def dump(self, indent, reverse):
-        display_lower = repr(unichr(self.lower)).lstrip("bu")
-        display_upper = repr(unichr(self.upper)).lstrip("bu")
-        print "%sRANGE %s %s %s%s" % (INDENT * indent, POS_TEXT[self.positive],
-          display_lower, display_upper, CASE_TEXT[self.case_flags])
+        display_lower = ascii(chr(self.lower)).lstrip("bu")
+        display_upper = ascii(chr(self.upper)).lstrip("bu")
+        print("{}RANGE {} {} {}{}".format(INDENT * indent,
+          POS_TEXT[self.positive], display_lower, display_upper,
+          CASE_TEXT[self.case_flags]))
 
     def matches(self, ch):
         return (self.lower <= ch <= self.upper) == self.positive
@@ -3366,8 +3349,8 @@ class RefGroup(RegexBase):
         return [(self._opcode[self.case_flags, reverse], flags, self.group)]
 
     def dump(self, indent, reverse):
-        print "%sREF_GROUP %s%s" % (INDENT * indent, self.group,
-          CASE_TEXT[self.case_flags])
+        print("{}REF_GROUP {}{}".format(INDENT * indent, self.group,
+          CASE_TEXT[self.case_flags]))
 
     def max_width(self):
         return UNLIMITED
@@ -3517,9 +3500,9 @@ class Sequence(RegexBase):
     def _fix_full_casefold(characters):
         # Split a literal needing full case-folding into chunks that need it
         # and chunks that can use simple case-folding, which is faster.
-        expanded = [_regex.fold_case(FULL_CASE_FOLDING, c) for c in
-          _regex.get_expand_on_folding()]
-        string = _regex.fold_case(FULL_CASE_FOLDING, u''.join(unichr(c)
+        expanded = [_regex20200220.fold_case(FULL_CASE_FOLDING, c) for c in
+          _regex20200220.get_expand_on_folding()]
+        string = _regex20200220.fold_case(FULL_CASE_FOLDING, ''.join(chr(c)
           for c in characters)).lower()
         chunks = []
 
@@ -3634,8 +3617,8 @@ class SetBase(RegexBase):
         return code
 
     def dump(self, indent, reverse):
-        print "%s%s %s%s" % (INDENT * indent, self._op_name,
-          POS_TEXT[self.positive], CASE_TEXT[self.case_flags])
+        print("{}{} {}{}".format(INDENT * indent, self._op_name,
+          POS_TEXT[self.positive], CASE_TEXT[self.case_flags]))
         for i in self.items:
             i.dump(indent + 1, reverse)
 
@@ -3650,14 +3633,14 @@ class SetBase(RegexBase):
             return self
 
         # Get the characters which expand to multiple codepoints on folding.
-        expanding_chars = _regex.get_expand_on_folding()
+        expanding_chars = _regex20200220.get_expand_on_folding()
 
         # Get the folded characters in the set.
         items = []
         seen = set()
         for ch in expanding_chars:
             if self.matches(ord(ch)):
-                folded = _regex.fold_case(FULL_CASE_FOLDING, ch)
+                folded = _regex20200220.fold_case(FULL_CASE_FOLDING, ch)
                 if folded not in seen:
                     items.append(String([ord(c) for c in folded],
                       case_flags=self.case_flags))
@@ -3680,13 +3663,13 @@ class SetBase(RegexBase):
             return 1
 
         # Get the characters which expand to multiple codepoints on folding.
-        expanding_chars = _regex.get_expand_on_folding()
+        expanding_chars = _regex20200220.get_expand_on_folding()
 
         # Get the folded characters in the set.
         seen = set()
         for ch in expanding_chars:
             if self.matches(ord(ch)):
-                folded = _regex.fold_case(FULL_CASE_FOLDING, ch)
+                folded = _regex20200220.fold_case(FULL_CASE_FOLDING, ch)
                 seen.add(folded)
 
         if not seen:
@@ -3886,7 +3869,7 @@ class String(RegexBase):
         if (self.case_flags & FULLIGNORECASE) == FULLIGNORECASE:
             folded_characters = []
             for char in self.characters:
-                folded = _regex.fold_case(FULL_CASE_FOLDING, unichr(char))
+                folded = _regex20200220.fold_case(FULL_CASE_FOLDING, chr(char))
                 folded_characters.extend(ord(c) for c in folded)
         else:
             folded_characters = self.characters
@@ -3917,9 +3900,9 @@ class String(RegexBase):
           len(self.folded_characters)) + self.folded_characters]
 
     def dump(self, indent, reverse):
-        display = repr("".join(unichr(c) for c in self.characters)).lstrip("bu")
-        print "%sSTRING %s%s" % (INDENT * indent, display,
-          CASE_TEXT[self.case_flags])
+        display = ascii("".join(chr(c) for c in self.characters)).lstrip("bu")
+        print("{}STRING {}{}".format(INDENT * indent, display,
+          CASE_TEXT[self.case_flags]))
 
     def max_width(self):
         return len(self.folded_characters)
@@ -3929,10 +3912,10 @@ class String(RegexBase):
 
 class Literal(String):
     def dump(self, indent, reverse):
-        literal = ''.join(unichr(c) for c in self.characters)
-        display = repr(literal).lstrip("bu")
-        print "%sLITERAL MATCH %s%s" % (INDENT * indent, display,
-          CASE_TEXT[self.case_flags])
+        literal = ''.join(chr(c) for c in self.characters)
+        display = ascii(literal).lstrip("bu")
+        print("{}LITERAL MATCH {}{}".format(INDENT * indent, display,
+          CASE_TEXT[self.case_flags]))
 
 class StringSet(RegexBase):
     _opcode = {(NOCASE, False): OP.STRING_SET, (IGNORECASE, False):
@@ -3990,14 +3973,14 @@ class StringSet(RegexBase):
               max_len)]
 
     def dump(self, indent, reverse):
-        print "%sSTRING_SET %s%s" % (INDENT * indent, self.name,
-          CASE_TEXT[self.case_flags])
+        print("{}STRING_SET {}{}".format(INDENT * indent, self.name,
+          CASE_TEXT[self.case_flags]))
 
     def _folded(self, fold_flags, item):
-        if isinstance(item, unicode):
-            return [ord(c) for c in _regex.fold_case(fold_flags, item)]
+        if isinstance(item, str):
+            return [ord(c) for c in _regex20200220.fold_case(fold_flags, item)]
         else:
-            return [ord(c) for c in item]
+            return list(item)
 
     def _flatten(self, s):
         # Flattens the branches.
@@ -4026,7 +4009,7 @@ class StringSet(RegexBase):
 
         if self.case_flags & IGNORECASE:
             fold_flags = (self.info.flags & _ALL_ENCODINGS) | self.case_flags
-            return max(len(_regex.fold_case(fold_flags, i)) for i in
+            return max(len(_regex20200220.fold_case(fold_flags, i)) for i in
               self.info.kwargs[self.name])
         else:
             return max(len(i) for i in self.info.kwargs[self.name])
@@ -4034,15 +4017,15 @@ class StringSet(RegexBase):
     def __del__(self):
         self.info = None
 
-class Source(object):
+class Source:
     "Scanner for the regular expression source string."
     def __init__(self, string):
-        if isinstance(string, unicode):
-            self.string = string
-            self.char_type = unichr
-        else:
+        if isinstance(string, str):
             self.string = string
             self.char_type = chr
+        else:
+            self.string = string.decode("latin-1")
+            self.char_type = lambda c: bytes([c])
 
         self.pos = 0
         self.ignore_space = False
@@ -4232,7 +4215,7 @@ class Source(object):
 
     def expect(self, substring):
         if not self.match(substring):
-            raise error("missing %s" % substring, self.string, self.pos)
+            raise error("missing {}".format(substring), self.string, self.pos)
 
     def at_end(self):
         string = self.string
@@ -4256,7 +4239,7 @@ class Source(object):
             # The comment extended to the end of the string.
             return True
 
-class Info(object):
+class Info:
     "Info about the regular expression."
 
     def __init__(self, flags=0, char_type=None, kwargs={}):
@@ -4420,7 +4403,7 @@ class Scanner:
         # Complain if there are any group calls. They are not supported by the
         # Scanner class.
         if info.call_refs:
-            raise error("recursive regex not supported by Scanner",
+            raise error("recursive regex20200220 not supported by Scanner",
               source.string, source.pos)
 
         reverse = bool(info.flags & REVERSE)
@@ -4451,7 +4434,7 @@ class Scanner:
         # needed by the PatternObject itself. Conversely, global flags like
         # LOCALE _don't_ affect the code generation but _are_ needed by the
         # PatternObject.
-        self.scanner = _regex.compile(None, (flags & GLOBAL_FLAGS) | version,
+        self.scanner = _regex20200220.compile(None, (flags & GLOBAL_FLAGS) | version,
           code, {}, {}, {}, [], req_offset, req_chars, req_flags,
           len(patterns))
 
@@ -4478,7 +4461,7 @@ class Scanner:
         return result, string[i : ]
 
 # Get the known properties dict.
-PROPERTIES = _regex.get_properties()
+PROPERTIES = _regex20200220.get_properties()
 
 # Build the inverse of the properties dict.
 PROPERTY_NAMES = {}

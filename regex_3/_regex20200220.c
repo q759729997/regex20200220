@@ -48,7 +48,7 @@
 #include "Python.h"
 #include "structmember.h" /* offsetof */
 #include <ctype.h>
-#include "_regex.h"
+#include "_regex20200220.h"
 #include "pyport.h"
 #include "pythread.h"
 
@@ -268,7 +268,7 @@ typedef struct RE_EncodingTable {
       cases);
 } RE_EncodingTable;
 
-/* Position within the regex and text. */
+/* Position within the regex20200220 and text. */
 typedef struct RE_Position {
     struct RE_Node* node;
     Py_ssize_t text_pos;
@@ -590,7 +590,7 @@ typedef struct MatchObject {
     PyObject* string; /* Link to the target string or NULL if detached. */
     PyObject* substring; /* Link to (a substring of) the target string. */
     Py_ssize_t substring_offset; /* Offset into the target string. */
-    PatternObject* pattern; /* Link to the regex (pattern) object. */
+    PatternObject* pattern; /* Link to the regex20200220 (pattern) object. */
     Py_ssize_t pos; /* Start of current slice. */
     Py_ssize_t endpos; /* End of current slice. */
     Py_ssize_t match_start; /* Start of matched slice. */
@@ -2076,7 +2076,7 @@ Py_LOCAL_INLINE(void) set_error(int status, PyObject* object) {
         break;
     case RE_ERROR_INVALID_GROUP_REF:
         if (!error_exception)
-            error_exception = get_object("regex._regex_core", "error");
+            error_exception = get_object("regex20200220._regex20200220_core", "error");
 
         PyErr_SetString(error_exception, "invalid group reference");
         break;
@@ -2101,12 +2101,12 @@ Py_LOCAL_INLINE(void) set_error(int status, PyObject* object) {
         break;
     case RE_ERROR_REPLACEMENT:
         if (!error_exception)
-            error_exception = get_object("regex._regex_core", "error");
+            error_exception = get_object("regex20200220._regex20200220_core", "error");
 
         PyErr_SetString(error_exception, "invalid replacement");
         break;
     case RE_ERROR_TIMED_OUT:
-        PyErr_SetString(PyExc_TimeoutError, "regex timed out");
+        PyErr_SetString(PyExc_TimeoutError, "regex20200220 timed out");
         break;
     default:
         /* Other error codes indicate compiler/engine bugs. */
@@ -20279,7 +20279,7 @@ static PyObject* match_expand(MatchObject* self, PyObject* str_template) {
     }
 
     /* Hand the template to the template compiler. */
-    replacement = call("regex.regex", "_compile_replacement_helper",
+    replacement = call("regex20200220.regex20200220", "_compile_replacement_helper",
       PyTuple_Pack(2, self->pattern, str_template));
     if (!replacement)
         return NULL;
@@ -20324,7 +20324,7 @@ error:
 
 static PyTypeObject Capture_Type = {
     PyVarObject_HEAD_INIT(NULL,0)
-    "_regex.Capture",
+    "_regex20200220.Capture",
     sizeof(MatchObject)
 };
 
@@ -20904,11 +20904,11 @@ static PyGetSetDef match_getset[] = {
 
 static PyMemberDef match_members[] = {
     {"re", T_OBJECT, offsetof(MatchObject, pattern), READONLY,
-      "The regex object that produced this match object."},
+      "The regex20200220 object that produced this match object."},
     {"pos", T_PYSSIZET, offsetof(MatchObject, pos), READONLY,
-      "The position at which the regex engine starting searching."},
+      "The position at which the regex20200220 engine starting searching."},
     {"endpos", T_PYSSIZET, offsetof(MatchObject, endpos), READONLY,
-      "The final position beyond which the regex engine won't search."},
+      "The final position beyond which the regex20200220 engine won't search."},
     {"partial", T_BOOL, offsetof(MatchObject, partial), READONLY,
       "Whether it's a partial match."},
     {NULL} /* Sentinel */
@@ -20922,7 +20922,7 @@ static PyMappingMethods match_as_mapping = {
 
 static PyTypeObject Match_Type = {
     PyVarObject_HEAD_INIT(NULL,0)
-    "_regex.Match",
+    "_regex20200220.Match",
     sizeof(MatchObject)
 };
 
@@ -21316,13 +21316,13 @@ static void scanner_dealloc(PyObject* self_) {
 
 static PyMemberDef scanner_members[] = {
     {"pattern", T_OBJECT, offsetof(ScannerObject, pattern), READONLY,
-      "The regex object that produced this scanner object."},
+      "The regex20200220 object that produced this scanner object."},
     {NULL} /* Sentinel */
 };
 
 static PyTypeObject Scanner_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_regex.Scanner",
+    "_regex20200220.Scanner",
     sizeof(ScannerObject)
 };
 
@@ -21870,13 +21870,13 @@ static PyObject* capture_str(PyObject* self_) {
 
 static PyMemberDef splitter_members[] = {
     {"pattern", T_OBJECT, offsetof(SplitterObject, pattern), READONLY,
-      "The regex object that produced this splitter object."},
+      "The regex20200220 object that produced this splitter object."},
     {NULL} /* Sentinel */
 };
 
 static PyTypeObject Splitter_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_regex.Splitter",
+    "_regex20200220.Splitter",
     sizeof(SplitterObject)
 };
 
@@ -22256,7 +22256,7 @@ Py_LOCAL_INLINE(PyObject*) pattern_subx(PatternObject* self, PyObject*
             /* It isn't a literal, so hand it over to the template compiler. */
             is_template = TRUE;
 
-            replacement = call("regex.regex", "_compile_replacement_helper",
+            replacement = call("regex20200220.regex20200220", "_compile_replacement_helper",
               PyTuple_Pack(2, self, str_template));
             if (!replacement) {
                 release_buffer(&str_info);
@@ -23067,7 +23067,7 @@ static PyMethodDef pattern_methods[] = {
     {NULL, NULL}
 };
 
-PyDoc_STRVAR(pattern_doc, "Compiled regex object");
+PyDoc_STRVAR(pattern_doc, "Compiled regex20200220 object");
 
 /* Deallocates a PatternObject. */
 static void pattern_dealloc(PyObject* self_) {
@@ -23317,7 +23317,7 @@ static PyObject* match_repr(PyObject* self_) {
     if (!list)
         return NULL;
 
-    if (!append_string(list, "<regex.Match object; span=("))
+    if (!append_string(list, "<regex20200220.Match object; span=("))
         goto error;
 
     if (!append_integer(list, self->match_start))
@@ -23417,7 +23417,7 @@ static PyObject* pattern_repr(PyObject* self_) {
     if (!list)
         return NULL;
 
-    if (!append_string(list, "regex.Regex("))
+    if (!append_string(list, "regex20200220.Regex("))
         goto error;
 
     item = PyObject_Repr(self->pattern);
@@ -23440,7 +23440,7 @@ static PyObject* pattern_repr(PyObject* self_) {
                     goto error;
             }
 
-            if (!append_string(list, "regex."))
+            if (!append_string(list, "regex20200220."))
                 goto error;
 
             if (!append_string(list, flag_names[i].name))
@@ -23526,19 +23526,19 @@ static PyGetSetDef pattern_getset[] = {
 
 static PyMemberDef pattern_members[] = {
     {"pattern", T_OBJECT, offsetof(PatternObject, pattern), READONLY,
-      "The pattern string from which the regex object was compiled."},
+      "The pattern string from which the regex20200220 object was compiled."},
     {"flags", T_PYSSIZET, offsetof(PatternObject, flags), READONLY,
-      "The regex matching flags."},
+      "The regex20200220 matching flags."},
     {"groups", T_PYSSIZET, offsetof(PatternObject, public_group_count),
       READONLY, "The number of capturing groups in the pattern."},
     {"named_lists", T_OBJECT, offsetof(PatternObject, named_lists), READONLY,
-      "The named lists used by the regex."},
+      "The named lists used by the regex20200220."},
     {NULL} /* Sentinel */
 };
 
 static PyTypeObject Pattern_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_regex.Pattern",
+    "_regex20200220.Pattern",
     sizeof(PatternObject)
 };
 
@@ -26293,7 +26293,7 @@ Py_LOCAL_INLINE(BOOL) compile_to_nodes(RE_CODE* code, RE_CODE* end_code,
     RE_CompileArgs args;
     int status;
 
-    /* Compile a regex sequence and then check that we've reached the end
+    /* Compile a regex20200220 sequence and then check that we've reached the end
      * correctly. (The last opcode should be 'SUCCESS'.)
      *
      * If successful, 'start' and 'end' will point to the start and end nodes
@@ -26338,7 +26338,7 @@ Py_LOCAL_INLINE(BOOL) compile_to_nodes(RE_CODE* code, RE_CODE* end_code,
     return TRUE;
 }
 
-/* Gets the required characters for a regex.
+/* Gets the required characters for a regex20200220.
  *
  * In the event of an error, it just pretends that there are no required
  * characters.
@@ -26493,7 +26493,7 @@ static PyObject* re_compile(PyObject* self_, PyObject* args) {
     } else
         unpacked = FALSE;
 
-    /* Read the regex code. */
+    /* Read the regex20200220 code. */
     code_len = PyList_GET_SIZE(code_list);
     code = (RE_CODE*)re_alloc((size_t)code_len * sizeof(RE_CODE));
     if (!code) {
@@ -27100,9 +27100,9 @@ error:
 }
 
 /* The module definition. */
-static struct PyModuleDef regex_module = {
+static struct PyModuleDef regex20200220_module = {
     PyModuleDef_HEAD_INIT,
-    "_regex",
+    "_regex20200220",
     NULL,
     -1,
     _functions,
@@ -27113,7 +27113,7 @@ static struct PyModuleDef regex_module = {
 };
 
 /* Initialises the module. */
-PyMODINIT_FUNC PyInit__regex(void) {
+PyMODINIT_FUNC PyInit__regex20200220(void) {
     PyObject* m;
     PyObject* d;
     PyObject* x;
@@ -27182,7 +27182,7 @@ PyMODINIT_FUNC PyInit__regex(void) {
 
     error_exception = NULL;
 
-    m = PyModule_Create(&regex_module);
+    m = PyModule_Create(&regex20200220_module);
     if (!m)
         return NULL;
 

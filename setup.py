@@ -36,13 +36,13 @@ setup(
     ],
     package_dir={'regex20200220': SRC_BASE},
     py_modules=[
-        'regex20200220.__init__', 'regex20200220.regex',
-        'regex20200220._regex_core', 'regex20200220.test_regex'
+        'regex20200220.__init__', 'regex20200220.regex20200220',
+        'regex20200220._regex20200220_core'
     ],
     ext_modules=[
         Extension(
-            'regex20200220._regex',
-            [join(SRC_BASE, '_regex.c'),
-             join(SRC_BASE, '_regex_unicode.c')])
+            'regex20200220._regex20200220',
+            [join(SRC_BASE, '_regex20200220.c'),
+             join(SRC_BASE, '_regex20200220_unicode.c')])
     ],
 )
