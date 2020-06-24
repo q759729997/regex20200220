@@ -12,7 +12,7 @@ with open('README_original.rst') as file:
 
 setup(
     name='regex20200220',
-    version='2020.2.20',
+    version='2020.2.20.2',
     description='Alternative regular expression module, to replace re.',
     long_description=long_description,
     author='Matthew Barnett',

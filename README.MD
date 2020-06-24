@@ -13,7 +13,7 @@ python setup.py install
 
 ~~~shell
 pip install regex20200220
-pip install git+https://github.com/q759729997/regex20200220.git@master  # 使用git安装
+pip install -U git+https://github.com/q759729997/regex20200220.git@master  # 使用git安装
 ~~~
 
 ## Python包操作
