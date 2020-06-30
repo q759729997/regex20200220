@@ -7,14 +7,15 @@ MAJOR, MINOR = sys.version_info[:2]
 
 SRC_BASE = 'regex_%i' % MAJOR
 
-with open('README_original.rst') as file:
+with open('README_original.rst', encoding='utf8') as file:
     long_description = file.read()
 
 setup(
     name='regex20200220',
-    version='2020.2.20.2',
+    version='2020.2.20.3',
     description='Alternative regular expression module, to replace re.',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Matthew Barnett',
     author_email='regex@mrabarnett.plus.com',
     url='https://bitbucket.org/mrabarnett/mrab-regex',
